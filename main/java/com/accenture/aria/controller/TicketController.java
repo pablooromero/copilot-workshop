@@ -1,10 +1,10 @@
-package com.accenture.ticketmanager.controller;
+package com.accenture.aria.controller;
 
-import com.accenture.ticketmanager.dto.TicketRequestDTO;
-import com.accenture.ticketmanager.dto.TicketResponseDTO;
-import com.accenture.ticketmanager.model.Ticket;
-import com.accenture.ticketmanager.service.TicketMapper;
-import com.accenture.ticketmanager.service.TicketService;
+import com.accenture.aria.dto.TicketRequestDTO;
+import com.accenture.aria.dto.TicketResponseDTO;
+import com.accenture.aria.model.Ticket;
+import com.accenture.aria.service.TicketMapper;
+import com.accenture.aria.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

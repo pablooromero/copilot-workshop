@@ -1,9 +1,9 @@
-package com.accenture.ticketmanager.service;
+package com.accenture.aria.service;
 
-import com.accenture.ticketmanager.model.Priority;
-import com.accenture.ticketmanager.model.Status;
-import com.accenture.ticketmanager.model.Ticket;
-import com.accenture.ticketmanager.repository.TicketRepository;
+import com.accenture.aria.model.Priority;
+import com.accenture.aria.model.Status;
+import com.accenture.aria.model.Ticket;
+import com.accenture.aria.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

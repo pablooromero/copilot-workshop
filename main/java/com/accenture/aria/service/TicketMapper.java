@@ -1,8 +1,8 @@
-package com.accenture.ticketmanager.service;
+package com.accenture.aria.service;
 
-import com.accenture.ticketmanager.dto.TicketRequestDTO;
-import com.accenture.ticketmanager.dto.TicketResponseDTO;
-import com.accenture.ticketmanager.model.Ticket;
+import com.accenture.aria.dto.TicketRequestDTO;
+import com.accenture.aria.dto.TicketResponseDTO;
+import com.accenture.aria.model.Ticket;
 
 public class TicketMapper {
 

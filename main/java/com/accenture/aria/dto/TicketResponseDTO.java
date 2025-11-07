@@ -1,7 +1,7 @@
-package com.accenture.ticketmanager.dto;
+package com.accenture.aria.dto;
 
-import com.accenture.ticketmanager.model.Priority;
-import com.accenture.ticketmanager.model.Status;
+import com.accenture.aria.model.Priority;
+import com.accenture.aria.model.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

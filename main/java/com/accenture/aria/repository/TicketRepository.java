@@ -1,6 +1,6 @@
-package com.accenture.ticketmanager.repository;
+package com.accenture.aria.repository;
 
-import com.accenture.ticketmanager.model.Ticket;
+import com.accenture.aria.model.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -3,7 +3,7 @@
 Proyecto Spring Boot (Maven) minimal para gestionar tickets (tipo Jira pero liviano).
 
 Estructura:
-- `src/main/java/com/accenture/ticketmanager` - código fuente
+- `src/main/java/com/accenture/aria` - código fuente
 - `src/main/resources/application.properties` - configuración H2 en memoria
 
 Dependencias principales:
@@ -16,7 +16,8 @@ Cómo ejecutar:
 
 Requisitos: JDK 17+, Maven
 
-Desde la raíz del proyecto (`ticket-manager`):
+
+Desde la raíz del proyecto (`aria`):
 
 ```bash
 mvn spring-boot:run
@@ -26,7 +27,7 @@ O generar JAR:
 
 ```bash
 mvn package
-java -jar target/ticket-manager-0.0.1-SNAPSHOT.jar
+java -jar target/aria-0.0.1-SNAPSHOT.jar
 ```
 
 API REST (ejemplos):

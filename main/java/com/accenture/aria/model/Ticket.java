@@ -1,4 +1,4 @@
-package com.accenture.ticketmanager.model;
+package com.accenture.aria.model;
 
 import jakarta.persistence.*;
 import lombok.*;

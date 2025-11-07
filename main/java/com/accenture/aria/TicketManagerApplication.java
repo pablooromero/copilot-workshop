@@ -1,4 +1,4 @@
-package com.accenture.ticketmanager;
+package com.accenture.aria;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
