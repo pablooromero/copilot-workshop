@@ -1,42 +1,159 @@
-# Ticket Manager (simple)
+# Aria - Sistema de Gestión de Tickets
 
-Proyecto Spring Boot (Maven) minimal para gestionar tickets (tipo Jira pero liviano).
+Sistema minimalista de gestión de tickets inspirado en Jira, construido con Spring Boot.
 
-Estructura:
-- `src/main/java/com/accenture/aria` - código fuente
-- `src/main/resources/application.properties` - configuración H2 en memoria
+## Características
 
-Dependencias principales:
-- Spring Boot Web
+- CRUD completo de tickets
+- Validación de datos con Jakarta Validation
+- Base de datos H2 en memoria
+- API REST con DTOs
+- Soporte para prioridades y estados
+- Documentación Swagger/OpenAPI (próximamente)
+
+## Tecnologías
+
+- Java 17
+- Spring Boot 3.2.8
 - Spring Data JPA
 - H2 Database
-- Lombok (opcional, ya incluido)
+- Lombok
+- Maven
 
-Cómo ejecutar:
+## Estructura del Proyecto
 
-Requisitos: JDK 17+, Maven
+```
+aria/
+├── main/
+│   ├── java/com/accenture/aria/
+│   │   ├── controller/
+│   │   │   └── TicketController.java
+│   │   ├── dto/
+│   │   │   ├── TicketRequestDTO.java
+│   │   │   └── TicketResponseDTO.java
+│   │   ├── model/
+│   │   │   ├── Ticket.java
+│   │   │   ├── Status.java
+│   │   │   └── Priority.java
+│   │   ├── repository/
+│   │   │   └── TicketRepository.java
+│   │   ├── service/
+│   │   │   ├── TicketService.java
+│   │   │   └── TicketMapper.java
+│   │   └── AriaApplication.java
+│   └── resources/
+│       └── application.properties
+├── pom.xml
+└── .gitignore
+```
 
+## Requisitos
 
-Desde la raíz del proyecto (`aria`):
+- JDK 17 o superior
+- Maven 3.6+
 
+## Instalación
+
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/accentureshark/aria.git
+cd aria
+```
+
+2. Compilar el proyecto:
+```bash
+mvn clean package
+```
+
+3. Ejecutar la aplicación:
 ```bash
 mvn spring-boot:run
 ```
 
-O generar JAR:
-
+O directamente el JAR:
 ```bash
-mvn package
 java -jar target/aria-0.0.1-SNAPSHOT.jar
 ```
 
-API REST (ejemplos):
-- `GET /api/tickets` - listar tickets
-- `GET /api/tickets/{id}` - obtener ticket
-- `POST /api/tickets` - crear ticket (envía JSON)
-- `PUT /api/tickets/{id}` - actualizar
-- `DELETE /api/tickets/{id}` - eliminar
+## API REST
 
-H2 Console: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:ticketdb`)
+### Endpoints
 
-Si quieres, agrego autenticación básica, DTOs y validaciones next.
+- `GET /api/tickets` - Listar todos los tickets
+- `GET /api/tickets/{id}` - Obtener un ticket por ID
+- `POST /api/tickets` - Crear nuevo ticket
+- `PUT /api/tickets/{id}` - Actualizar ticket existente
+- `DELETE /api/tickets/{id}` - Eliminar ticket
+
+### Ejemplos de Uso
+
+#### Crear un Ticket
+```bash
+curl -X POST http://localhost:8080/api/tickets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Bug en login",
+    "description": "Error al intentar iniciar sesión",
+    "priority": "HIGH",
+    "reporter": "juan@example.com"
+  }'
+```
+
+#### Listar Tickets
+```bash
+curl http://localhost:8080/api/tickets
+```
+
+#### Actualizar Ticket
+```bash
+curl -X PUT http://localhost:8080/api/tickets/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "IN_PROGRESS",
+    "assignee": "ana@example.com"
+  }'
+```
+
+## Base de Datos
+
+H2 Console disponible en: http://localhost:8080/h2-console
+
+Configuración de conexión:
+- JDBC URL: `jdbc:h2:mem:ticketdb`
+- Usuario: `sa`
+- Contraseña: (vacía)
+
+## Estados y Prioridades
+
+Estados disponibles:
+- `OPEN`
+- `IN_PROGRESS`
+- `RESOLVED`
+- `CLOSED`
+
+Prioridades:
+- `LOW`
+- `MEDIUM`
+- `HIGH`
+- `URGENT`
+
+## Desarrollo
+
+### Compilar y Ejecutar Tests
+```bash
+mvn clean verify
+```
+
+### Crear build de producción
+```bash
+mvn clean package -Pprod
+```
+
+## Siguientes Pasos
+
+- [ ] Agregar autenticación con Spring Security
+- [ ] Implementar documentación con Swagger/OpenAPI
+- [ ] Añadir más tests (unitarios y de integración)
+- [ ] Soporte para comentarios en tickets
+- [ ] Implementar búsqueda y filtros
+- [ ] Frontend minimalista (React/Angular)
