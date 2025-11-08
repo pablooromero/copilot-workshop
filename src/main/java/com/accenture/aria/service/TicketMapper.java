@@ -6,16 +6,22 @@ import com.accenture.aria.model.Ticket;
 
 public class TicketMapper {
 
+    private TicketMapper() {
+        // Private constructor to hide implicit public one
+    }
+
     public static Ticket toEntity(TicketRequestDTO dto) {
         if (dto == null) return null;
-        return Ticket.builder()
+        Ticket.TicketBuilder builder = Ticket.builder()
                 .title(dto.getTitle())
                 .description(dto.getDescription())
                 .status(dto.getStatus())
-                .priority(dto.getPriority())
-                .reporter(dto.getReporter())
-                .assignee(dto.getAssignee())
-                .build();
+                .priority(dto.getPriority());
+        
+        // Note: reporter and assignee need to be set separately in the service
+        // after fetching Person entities by their IDs
+        
+        return builder.build();
     }
 
     public static TicketResponseDTO toResponse(Ticket t) {
@@ -26,8 +32,8 @@ public class TicketMapper {
                 .description(t.getDescription())
                 .status(t.getStatus())
                 .priority(t.getPriority())
-                .reporter(t.getReporter())
-                .assignee(t.getAssignee())
+                .reporter(PersonMapper.toResponse(t.getReporter()))
+                .assignee(PersonMapper.toResponse(t.getAssignee()))
                 .createdAt(t.getCreatedAt())
                 .updatedAt(t.getUpdatedAt())
                 .build();

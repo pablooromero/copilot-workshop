@@ -38,16 +38,14 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> create(@Valid @RequestBody TicketRequestDTO dto) {
-        Ticket toCreate = TicketMapper.toEntity(dto);
-        Ticket created = service.create(toCreate);
+        Ticket created = service.createFromDTO(dto);
         TicketResponseDTO resp = TicketMapper.toResponse(created);
         return ResponseEntity.created(URI.create("/api/tickets/" + created.getId())).body(resp);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TicketResponseDTO> update(@PathVariable Long id, @Valid @RequestBody TicketRequestDTO dto) {
-        Ticket updatedEntity = TicketMapper.toEntity(dto);
-        return service.update(id, updatedEntity)
+        return service.updateFromDTO(id, dto)
                 .map(TicketMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

@@ -17,7 +17,6 @@ Sistema minimalista de gestión de tickets inspirado en Jira, construido con Spr
 - Spring Boot 3.2.8
 - Spring Data JPA
 - H2 Database
-- Lombok
 - Maven
 
 ## Estructura del Proyecto
