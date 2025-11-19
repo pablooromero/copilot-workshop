@@ -1,0 +1,135 @@
+@startuml Aria - Component Diagram (Hexagonal Architecture)
+
+!define RECTANGLE_COLOR #E1F5FE
+!define COMPONENT_COLOR #81D4FA
+!define ADAPTER_COLOR #FFE082
+!define DOMAIN_COLOR #A5D6A7
+
+title Aria API - Arquitectura Hexagonal (Ports & Adapters)
+
+skinparam component {
+    BackgroundColor COMPONENT_COLOR
+    BorderColor #0277BD
+    FontSize 12
+}
+
+skinparam rectangle {
+    BackgroundColor RECTANGLE_COLOR
+    BorderColor #01579B
+    FontSize 11
+}
+
+' ====== CAPA DE ADAPTADORES DE ENTRADA (HTTP) ======
+rectangle "**Adapters (HTTP Input)**" as http_adapters #ADAPTER_COLOR {
+    component "ExcuseController\n/api/excuses" as exc_ctrl
+    component "FragmentController\n/api/fragments" as frag_ctrl
+    component "MemeController\n/api/memes" as meme_ctrl
+    component "LawController\n/api/laws" as law_ctrl
+    
+    note right of exc_ctrl
+        Endpoints:
+        - GET /random
+        - GET /daily
+        - GET /role/{role}
+        - GET /meme
+        - GET /law
+        - GET /ultra
+    end note
+}
+
+' ====== CAPA DE DTOs (Contratos de API) ======
+rectangle "**DTOs (API Contracts)**" as dtos #RECTANGLE_COLOR {
+    component "RequestDTOs\n(FragmentRequestDTO,\nMemeRequestDTO,\nLawRequestDTO)" as req_dtos
+    component "ResponseDTOs\n(FragmentResponseDTO,\nMemeResponseDTO,\nLawResponseDTO,\nExcuseResponseDTO)" as res_dtos
+    component "ErrorResponse\n(Exception Handling)" as error_dto
+}
+
+' ====== CAPA DE DOMINIO (Core Business Logic) ======
+rectangle "**Domain (Business Logic)**" as domain #DOMAIN_COLOR {
+    component "ExcuseService\n(Excuse Generation)" as exc_svc
+    component "FragmentService\n(CRUD + Queries)" as frag_svc
+    component "MemeService\n(CRUD)" as meme_svc
+    component "LawService\n(CRUD + Categories)" as law_svc
+    
+    note right of exc_svc
+        Lógica de negocio:
+        - Selección aleatoria
+        - Filtrado por Role
+        - Seed reproducibility
+        - Combinación con memes/leyes
+    end note
+}
+
+' ====== MAPPERS (Entity <-> DTO Conversions) ======
+rectangle "**Mappers (Static Utilities)**" as mappers #RECTANGLE_COLOR {
+    component "FragmentMapper" as frag_mapper
+    component "MemeMapper" as meme_mapper
+    component "LawMapper" as law_mapper
+}
+
+' ====== EXCEPCIONES (Exception Handling) ======
+rectangle "**Exception Handling**" as exceptions #FFE0B2 {
+    component "GlobalExceptionHandler\n(@ControllerAdvice)" as global_handler
+    component "BusinessException\n(ResourceNotFoundException,\nValidationException,\nDataConflictException)" as custom_exceptions
+}
+
+' ====== MODELOS DE DOMINIO (Entities) ======
+rectangle "**Domain Models**" as models #DOMAIN_COLOR {
+    component "Fragment\n(CONTEXTO, CAUSA,\nCONSECUENCIA,\nRECOMENDACION)" as fragment_model
+    component "Meme\n(Character + Description)" as meme_model
+    component "Law\n(MURPHY, HOFSTADTER,\nDILBERT, DEVOPS,\nAXIOM)" as law_model
+}
+
+' ====== CAPA DE ADAPTADORES DE SALIDA (DB) ======
+rectangle "**Adapters (Database Output)**" as db_adapters #ADAPTER_COLOR {
+    component "FragmentRepository\n(JpaRepository)" as frag_repo
+    component "MemeRepository\n(JpaRepository)" as meme_repo
+    component "LawRepository\n(JpaRepository)" as law_repo
+}
+
+' ====== BASE DE DATOS ======
+database "H2 Database\n(In-Memory)\njdbc:h2:mem:excusesdb" as h2_db #FFF9C4
+
+' ====== CARGADOR DE DATOS ======
+component "DataLoader\n(CommandLineRunner)" as data_loader #B39DDB
+
+' ====== ARCHIVOS JSON ======
+folder "docs/json/\n(murphy.json,\nhofstadter.json,\ndilbert.json,\ndevops_principles.json,\ndev_axioms.json,\nmemes_argentinos.json,\nargento-memes.json,\ndev-memes.json)" as json_files #E1BEE7
+
+' ====== RELACIONES - FLUJO DE ENTRADA ======
+http_adapters --> dtos : "usa"
+dtos --> domain : "convierte a/desde"
+domain --> mappers : "usa para\nconversión"
+mappers --> models : "convierte"
+domain --> models : "opera con"
+
+' ====== RELACIONES - MANEJO DE EXCEPCIONES ======
+http_adapters ..> exceptions : "lanza"
+domain ..> exceptions : "lanza"
+exceptions --> error_dto : "retorna"
+
+' ====== RELACIONES - FLUJO DE SALIDA ======
+domain --> db_adapters : "usa"
+db_adapters --> models : "persiste/recupera"
+db_adapters --> h2_db : "JPA/Hibernate"
+
+' ====== RELACIONES - CARGA INICIAL ======
+data_loader --> json_files : "lee"
+data_loader --> db_adapters : "carga datos\nen startup"
+
+' ====== NOTAS ADICIONALES ======
+note bottom of h2_db
+    224 entidades iniciales:
+    - 97 Laws (Murphy, Hofstadter, etc.)
+    - 87 Memes (argentinos y tech)
+    - 40 Fragments (4 tipos x roles)
+end note
+
+note top of domain
+    **Patrón Hexagonal**
+    El dominio (Services) es independiente
+    de frameworks e infraestructura.
+    Solo depende de interfaces (Ports).
+end note
+
+@enduml

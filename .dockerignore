@@ -1,0 +1,53 @@
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# Git
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Logs
+*.log
+logs/
+aria.pid
+
+# Environment files
+.env
+.env.local
+
+# Documentation (no necesario en imagen)
+*.md
+docs/
+README*.md
+LICENSE
+
+# Test files
+**/src/test/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Build artifacts que no queremos
+*.class
+*.jar
+*.war

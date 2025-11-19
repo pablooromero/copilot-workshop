@@ -1,0 +1,237 @@
+@startuml Excuses Tech API - Class Diagram
+
+' Colores y estilos
+skinparam packageStyle rectangle
+skinparam class {
+    BackgroundColor<<Entity>> LightBlue
+    BackgroundColor<<Service>> LightGreen
+    BackgroundColor<<Repository>> LightYellow
+    BackgroundColor<<Controller>> LightCoral
+    BackgroundColor<<DTO>> Wheat
+}
+
+package "Domain Layer (Model)" {
+    class Fragment <<Entity>> {
+        - Long id
+        - FragmentType type
+        - String text
+        - Role role
+    }
+    
+    class Meme <<Entity>> {
+        - Long id
+        - String character
+        - String description
+    }
+    
+    class Law <<Entity>> {
+        - Long id
+        - String name
+        - String description
+        - LawCategory category
+    }
+    
+    enum FragmentType {
+        CONTEXTO
+        CAUSA
+        CONSECUENCIA
+        RECOMENDACION
+    }
+    
+    enum Role {
+        DEV
+        QA
+        DEVOPS
+        PM
+        SRE
+        ALL
+    }
+    
+    enum LawCategory {
+        MURPHY
+        HOFSTADTER
+        DILBERT
+        DEVOPS
+        AXIOM
+    }
+    
+    Fragment --> FragmentType
+    Fragment --> Role
+    Law --> LawCategory
+}
+
+package "Application Layer (Service)" {
+    interface IExcuseService <<Service>> {
+        + generateExcuse(seed, role): ExcuseResponseDTO
+        + generateExcuseWithMeme(seed, role): ExcuseResponseDTO
+        + generateExcuseWithLaw(seed, role): ExcuseResponseDTO
+        + generateExcuseUltra(seed, role): ExcuseResponseDTO
+    }
+    
+    interface IFragmentService <<Service>> {
+        + create(fragment): Fragment
+        + createFromDTO(dto): Fragment
+        + findById(id): FragmentResponseDTO
+        + findAll(): List<FragmentResponseDTO>
+        + update(id, fragment): Fragment
+        + delete(id): void
+    }
+    
+    interface IMemeService <<Service>> {
+        + create(meme): Meme
+        + findById(id): MemeResponseDTO
+        + findAll(): List<MemeResponseDTO>
+    }
+    
+    interface ILawService <<Service>> {
+        + create(law): Law
+        + findById(id): LawResponseDTO
+        + findAll(): List<LawResponseDTO>
+    }
+    
+    class ExcuseService <<Service>> {
+        - FragmentRepository fragmentRepo
+        - MemeRepository memeRepo
+        - LawRepository lawRepo
+        --
+        + generateExcuse(seed, role)
+        - selectRandomFragment(type, role, random)
+    }
+    
+    class FragmentService <<Service>> {
+        - FragmentRepository repository
+        --
+        + create(fragment)
+        + findById(id)
+        + findAll()
+    }
+    
+    class MemeService <<Service>>
+    class LawService <<Service>>
+    
+    ExcuseService ..|> IExcuseService
+    FragmentService ..|> IFragmentService
+    MemeService ..|> IMemeService
+    LawService ..|> ILawService
+}
+
+package "Infrastructure Layer (Repository)" {
+    interface FragmentRepository <<Repository>> {
+        + findByType(type): List<Fragment>
+        + findByRole(role): List<Fragment>
+        + findByTypeAndRoleIn(type, roles): List<Fragment>
+    }
+    
+    interface MemeRepository <<Repository>> {
+        ' JpaRepository methods
+    }
+    
+    interface LawRepository <<Repository>> {
+        + findByCategory(category): List<Law>
+    }
+    
+    FragmentRepository --> Fragment
+    MemeRepository --> Meme
+    LawRepository --> Law
+}
+
+package "Infrastructure Layer (Controller)" {
+    class ExcuseController <<Controller>> {
+        - IExcuseService service
+        --
+        + random(seed, role): ResponseEntity
+        + daily(): ResponseEntity
+        + byRole(role): ResponseEntity
+        + withMeme(): ResponseEntity
+        + withLaw(): ResponseEntity
+        + ultra(): ResponseEntity
+    }
+    
+    class FragmentController <<Controller>> {
+        - IFragmentService service
+        --
+        + findAll(): ResponseEntity
+        + create(dto): ResponseEntity
+        + update(id, dto): ResponseEntity
+        + delete(id): ResponseEntity
+    }
+    
+    class MemeController <<Controller>>
+    class LawController <<Controller>>
+}
+
+package "DTO Layer" {
+    class ExcuseResponseDTO <<DTO>> {
+        + String contexto
+        + String causa
+        + String consecuencia
+        + String recomendacion
+        + MemeResponseDTO meme
+        + LawResponseDTO law
+    }
+    
+    class FragmentRequestDTO <<DTO>>
+    class FragmentResponseDTO <<DTO>>
+    class MemeResponseDTO <<DTO>>
+    class LawResponseDTO <<DTO>>
+    
+    ExcuseResponseDTO --> MemeResponseDTO
+    ExcuseResponseDTO --> LawResponseDTO
+}
+
+package "Mapper Layer" {
+    class FragmentMapper {
+        {static} + toEntity(dto): Fragment
+        {static} + toResponse(entity): FragmentResponseDTO
+        - FragmentMapper()
+    }
+    
+    class MemeMapper {
+        {static} + toEntity(dto): Meme
+        {static} + toResponse(entity): MemeResponseDTO
+    }
+    
+    class LawMapper {
+        {static} + toEntity(dto): Law
+        {static} + toResponse(entity): LawResponseDTO
+    }
+}
+
+' Relaciones entre capas
+ExcuseController --> IExcuseService
+FragmentController --> IFragmentService
+MemeController --> IMemeService
+LawController --> ILawService
+
+ExcuseService --> FragmentRepository
+ExcuseService --> MemeRepository
+ExcuseService --> LawRepository
+
+FragmentService --> FragmentRepository
+MemeService --> MemeRepository
+LawService --> LawRepository
+
+FragmentService ..> FragmentMapper : uses
+MemeService ..> MemeMapper : uses
+LawService ..> LawMapper : uses
+
+FragmentMapper ..> Fragment : creates
+FragmentMapper ..> FragmentResponseDTO : creates
+MemeMapper ..> Meme : creates
+LawMapper ..> Law : creates
+
+note top of ExcuseService
+  **Lógica principal de generación**
+  - Combina fragmentos aleatorios
+  - Soporte de seed para reproducibilidad
+  - Filtrado por Role
+end note
+
+note top of ExcuseController
+  **Endpoints REST**
+  /api/excuses/random
+  /api/excuses/daily
+  /api/excuses/ultra (meme + law)
+end note
+
+@enduml

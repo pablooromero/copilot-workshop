@@ -48,7 +48,16 @@ build/
 *.log
 .mtj.tmp/
 hs_err_pid*
+
+# Docker
+.env
+.env.local
+.env.*.local
 replay_pid*
 
 # Project specific
 aria.pid
+
+# Environment variables (API keys, secrets)
+.env
+.env.local

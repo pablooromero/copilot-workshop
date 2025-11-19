@@ -1,0 +1,119 @@
+@startuml Excuse Generation - Sequence Diagram
+
+title Generación de Excusa Tech con Seed
+
+actor Client
+participant ExcuseController <<Controller>>
+participant ExcuseService <<Service>>
+participant FragmentRepository <<Repository>>
+participant Random <<Java>>
+database H2Database
+
+Client -> ExcuseController: GET /api/excuses/random?seed=123
+activate ExcuseController
+
+ExcuseController -> ExcuseService: generateExcuse(123, null)
+activate ExcuseService
+
+ExcuseService -> Random: new Random(123)
+activate Random
+Random --> ExcuseService: random instance
+deactivate Random
+
+note right of ExcuseService
+  **Selección de CONTEXTO**
+end note
+
+ExcuseService -> FragmentRepository: findByType(CONTEXTO)
+activate FragmentRepository
+FragmentRepository -> H2Database: SELECT * FROM fragments\nWHERE type = 'CONTEXTO'
+activate H2Database
+H2Database --> FragmentRepository: List<Fragment>
+deactivate H2Database
+FragmentRepository --> ExcuseService: List<Fragment> (10 elementos)
+deactivate FragmentRepository
+
+ExcuseService -> Random: nextInt(list.size())
+activate Random
+Random --> ExcuseService: index = 3
+deactivate Random
+
+ExcuseService -> ExcuseService: fragments.get(3)
+
+note right of ExcuseService
+  **Selección de CAUSA**
+end note
+
+ExcuseService -> FragmentRepository: findByType(CAUSA)
+activate FragmentRepository
+FragmentRepository -> H2Database: SELECT * FROM fragments\nWHERE type = 'CAUSA'
+activate H2Database
+H2Database --> FragmentRepository: List<Fragment>
+deactivate H2Database
+FragmentRepository --> ExcuseService: List<Fragment>
+deactivate FragmentRepository
+
+ExcuseService -> Random: nextInt(list.size())
+activate Random
+Random --> ExcuseService: index = 7
+deactivate Random
+
+note right of ExcuseService
+  **Selección de CONSECUENCIA**
+end note
+
+ExcuseService -> FragmentRepository: findByType(CONSECUENCIA)
+activate FragmentRepository
+FragmentRepository -> H2Database: SELECT * FROM fragments\nWHERE type = 'CONSECUENCIA'
+activate H2Database
+H2Database --> FragmentRepository: List<Fragment>
+deactivate H2Database
+FragmentRepository --> ExcuseService: List<Fragment>
+deactivate FragmentRepository
+
+ExcuseService -> Random: nextInt(list.size())
+activate Random
+Random --> ExcuseService: index = 2
+deactivate Random
+
+note right of ExcuseService
+  **Selección de RECOMENDACION**
+end note
+
+ExcuseService -> FragmentRepository: findByType(RECOMENDACION)
+activate FragmentRepository
+FragmentRepository -> H2Database: SELECT * FROM fragments\nWHERE type = 'RECOMENDACION'
+activate H2Database
+H2Database --> FragmentRepository: List<Fragment>
+deactivate H2Database
+FragmentRepository --> ExcuseService: List<Fragment>
+deactivate FragmentRepository
+
+ExcuseService -> Random: nextInt(list.size())
+activate Random
+Random --> ExcuseService: index = 5
+deactivate Random
+
+note right of ExcuseService
+  **Construcción del DTO**
+  - contexto.getText()
+  - causa.getText()
+  - consecuencia.getText()
+  - recomendacion.getText()
+end note
+
+ExcuseService -> ExcuseService: ExcuseResponseDTO.builder()\n.contexto(...).causa(...)\n.consecuencia(...)\n.recomendacion(...).build()
+
+ExcuseService --> ExcuseController: ExcuseResponseDTO
+deactivate ExcuseService
+
+ExcuseController --> Client: 200 OK + JSON\n{\n  "contexto": "...",\n  "causa": "...",\n  "consecuencia": "...",\n  "recomendacion": "..."\n}
+deactivate ExcuseController
+
+note over Client
+  **Reproducibilidad garantizada**
+  El mismo seed (123) siempre
+  generará la misma excusa
+end note
+
+@enduml

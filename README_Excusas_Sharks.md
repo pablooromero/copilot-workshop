@@ -153,7 +153,38 @@ Modo ULTRA SHARK:
 ###  Megalodon 
 - Usar AI componer las excusas. 
 
+---
 
+## 🐳 Ejecutar con Docker
+
+Si querés ejecutar la aplicación en Docker sin instalar Java ni Maven:
+
+### Inicio Rápido con Docker Compose
+
+```bash
+# 1. Configurar API key de Gemini (requerido)
+export GEMINI_API_KEY="tu_api_key_aqui"
+
+# 2. Levantar la aplicación
+docker-compose up -d
+
+# 3. Verificar que funciona
+curl http://localhost:8080/api/excuses/random
+```
+
+### Build manual con Docker
+
+```bash
+# Build imagen
+docker build -t aria:latest .
+
+# Ejecutar contenedor
+docker run -d -p 8080:8080 \
+  -e GEMINI_API_KEY="tu_api_key" \
+  --name aria-api aria:latest
+```
+
+**Ver documentación completa:** [README_DOCKER.md](README_DOCKER.md)
 
 ---
 

@@ -1,8 +1,8 @@
-# Instrucciones para GitHub Copilot - Proyecto Aria
+# Instrucciones para GitHub Copilot - Proyecto Aria (Excusas Tech API)
 
 ## Arquitectura y Contexto
 
-Aria es un sistema de gestión de tickets (tipo Jira simplificado) construido con Spring Boot 3.2.8 y Java 17. La arquitectura sigue el patrón **Hexagonal (Ports & Adapters)**, separando el dominio de la infraestructura, con H2 como base de datos en memoria.
+Aria es una **API REST de Excusas Tech** (Java Sharks Challenge) que genera excusas técnicas divertidas combinando fragmentos, memes y leyes del mundo IT. Construido con Spring Boot 3.2.8 y Java 17. La arquitectura sigue el patrón **Hexagonal (Ports & Adapters)**, separando el dominio de la infraestructura, con H2 como base de datos en memoria.
 
 **Principios fundamentales**:
 - **Arquitectura Hexagonal**: Dominio independiente de frameworks e infraestructura
@@ -43,29 +43,31 @@ HTTP Request → Controller (Adapter) → Service (Domain) → Repository (Adapt
 **NO uses entidades anidadas en RequestDTOs**. Usa IDs para referencias:
 
 ```java
-// ✅ CORRECTO - TicketRequestDTO
-private Long reporterId;
-private Long assigneeId;
+// ✅ CORRECTO - FragmentRequestDTO
+private FragmentType type;
+private String text;
+private Role role;
 
-// ❌ INCORRECTO - No uses esto
-private Person reporter;
+// ❌ INCORRECTO - No uses entidades anidadas en Request
+private Fragment related;
 ```
 
-**Los ResponseDTOs SÍ contienen objetos anidados** completos:
+**Los ResponseDTOs SÍ contienen objetos anidados** completos cuando corresponde:
 ```java
-// TicketResponseDTO incluye PersonResponseDTO completo
-private PersonResponseDTO reporter;
+// ExcuseResponseDTO incluye objetos completos
+private MemeResponseDTO meme;
+private LawResponseDTO law;
 ```
 
 ### 2. Mappers Estáticos con Constructor Privado
 Todos los mappers son clases utilitarias con constructor privado:
 
 ```java
-public class TicketMapper {
-    private TicketMapper() {} // Evita instanciación
+public class FragmentMapper {
+    private FragmentMapper() {} // Evita instanciación
     
-    public static Ticket toEntity(TicketRequestDTO dto) { ... }
-    public static TicketResponseDTO toResponse(Ticket t) { ... }
+    public static Fragment toEntity(FragmentRequestDTO dto) { ... }
+    public static FragmentResponseDTO toResponse(Fragment f) { ... }
 }
 ```
 
@@ -74,42 +76,38 @@ Los servicios exponen dos métodos para crear/actualizar:
 
 ```java
 // Para uso directo con entidades
-public Ticket create(Ticket ticket) { ... }
+public Fragment create(Fragment fragment) { ... }
 
 // Para uso desde controllers con DTOs - resuelve relaciones por ID
-public Ticket createFromDTO(TicketRequestDTO dto) {
-    Ticket ticket = TicketMapper.toEntity(dto);
-    if (dto.getReporterId() != null) {
-        personRepo.findById(dto.getReporterId()).ifPresent(ticket::setReporter);
-    }
-    return create(ticket);
+public Fragment createFromDTO(FragmentRequestDTO dto) {
+    Fragment fragment = FragmentMapper.toEntity(dto);
+    // Aplicar validaciones de negocio si es necesario
+    return create(fragment);
 }
 ```
 
 **Controllers DEBEN usar métodos `*FromDTO`** para manejar correctamente las relaciones.
 
-### 4. Lazy Loading en Relaciones
-Todas las relaciones `@ManyToOne` usan `FetchType.LAZY`:
+### 4. Entidades Simples (Sin Relaciones JPA)
+En este proyecto, las entidades son simples y NO tienen relaciones `@ManyToOne` o `@OneToMany`:
+- `Fragment`, `Meme`, `Law` son independientes
+- Las **Excusas NO se persisten**, se generan on-the-fly combinando fragmentos
+
+Los mappers manejan objetos null de forma segura.
+
+### 5. Generación Aleatoria con Seed (Reproducibilidad)
+La lógica de generación de excusas debe soportar seeds para reproducibilidad:
 
 ```java
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "reporter_id")
-private Person reporter;
-```
-
-Los mappers manejan objetos null de forma segura (ver `PersonMapper.toResponse()`).
-
-### 5. Valores por Defecto en Service Layer
-Los defaults se aplican en servicios, NO en constructores:
-
-```java
-public Ticket create(Ticket ticket) {
-    if (ticket.getStatus() == null) ticket.setStatus(Status.OPEN);
-    if (ticket.getPriority() == null) ticket.setPriority(Priority.MEDIUM);
-    ticket.setCreatedAt(LocalDateTime.now());
+public Excuse generateExcuse(Long seed) {
+    Random random = seed != null ? new Random(seed) : new Random();
+    // Selección aleatoria de fragmentos
+    Fragment contexto = selectRandomFragment(FragmentType.CONTEXTO, random);
     // ...
 }
 ```
+
+El endpoint `/excuses/daily` usa `LocalDate.now().toEpochDay()` como seed automático.
 
 ### 6. Actualización Parcial con Null-Safe
 Los métodos `update` solo modifican campos no-null del DTO:
@@ -144,6 +142,13 @@ if (dto.getStatus() != null) existing.setStatus(dto.getStatus());
 - **Inyección de dependencias**: Siempre por constructor (no `@Autowired` en campos)
 - **KISS**: Endpoints simples, lógica compleja en services
 
+## Carga de Datos Inicial
+
+Los datos se cargan desde JSONs en `/docs/json` mediante `CommandLineRunner`:
+- `murphy.json`, `hofstadter.json`, `dilbert.json`, `devops_principles.json`, `dev_axioms.json` → tabla `laws`
+- `memes_argentinos.json`, `argento-memes.json`, `dev-memes.json` → tabla `memes`
+- Fragments se crean programáticamente en el loader
+
 ## Comandos de Desarrollo
 
 ```bash
@@ -155,24 +160,45 @@ mvn spring-boot:run
 
 # Acceder a H2 Console
 # URL: http://localhost:8080/h2-console
-# JDBC URL: jdbc:h2:mem:ticketdb
+# JDBC URL: jdbc:h2:mem:excusesdb
 # Usuario: sa, Password: (vacía)
 ```
 
-## Estados y Enums del Dominio
+## Enums del Dominio
 
 ```java
-Status: OPEN, IN_PROGRESS, RESOLVED, CLOSED
-Priority: LOW, MEDIUM, HIGH, URGENT
+FragmentType: CONTEXTO, CAUSA, CONSECUENCIA, RECOMENDACION
+Role: DEV, QA, DEVOPS, PM, ALL
+LawCategory: MURPHY, HOFSTADTER, DILBERT, DEVOPS, AXIOM
+```
+
+## Modelo de Dominio
+
+```java
+Fragment: id, type (FragmentType), text, role (Role)
+Meme: id, character, description
+Law: id, name, description, category (LawCategory)
+Excuse: contexto, causa, consecuencia, recomendacion (generado on-the-fly, NO persiste)
 ```
 
 ## Endpoints REST
 
 Todos bajo `/api/{recurso}`:
-- Tickets: `/api/tickets`
-- Persons: `/api/persons` (incluye endpoints por email, username, department)
 
-**Pattern**: `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`, `PATCH /{id}/deactivate` (solo Person)
+**Generación de Excusas**:
+- `/api/excuses/random` - Excusa aleatoria simple
+- `/api/excuses/daily` - Excusa del día (misma cada 24hs)
+- `/api/excuses/role/{role}` - Excusa filtrada por rol
+- `/api/excuses/meme` - Excusa + meme
+- `/api/excuses/law` - Excusa + ley/axioma
+- `/api/excuses/ultra` - Excusa + meme + ley (modo ULTRA SHARK)
+
+**CRUD de Recursos**:
+- `/api/fragments` - CRUD de fragmentos
+- `/api/memes` - CRUD de memes
+- `/api/laws` - CRUD de leyes/axiomas
+
+**Pattern**: `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`
 
 ## Tests
 
